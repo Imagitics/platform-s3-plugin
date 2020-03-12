@@ -1,0 +1,7 @@
+{
+  "url": "https://app.zenserp.com/api/v2/search",
+  "api_key": "test",
+  "search_query": "test_search",
+  "page_size": 100,
+  "total_num_results": 100
+}
