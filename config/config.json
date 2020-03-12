@@ -1,8 +1,8 @@
 {
-  "url": "https://app.zenserp.com/api/v2/search",
-  "api_key": "3b7ef640-563f-11ea-853f-b30756f9f03f",
-  "search_query": "happy people",
-  "num_of_results": 100,
-  "start": 0,
-  "total_num_results": 1000
+  "s3": {
+    "aws_access_key": "${aws_access_key}",
+    "aws_secret_key": "${aws_secret_key}",
+    "region": "${region_name}",
+    "path_prefix": "${tenant_path}"
+  }
 }
