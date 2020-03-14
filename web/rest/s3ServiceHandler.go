@@ -88,6 +88,8 @@ func S3UploadHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func getAWSCredentialsByTenantId(tenantId string) *client.S3Credentials {
+func getAWSCredentialsByTenantId(tenantId string) (*client.S3Credentials, error) {
+	if tenantID == "" {
 
+	}
 }
