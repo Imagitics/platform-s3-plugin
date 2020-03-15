@@ -1,8 +1,8 @@
 package model
 
 type S3Metadata struct {
-	tenantID  string `json:"tenantID"`
-	accessKey string `json:"accessKey"`
-	secretKey string `json:"secretKe"`
-	region    string `json:"region"`
+	TenantID  string `json:"tenantID"`
+	AccessKey string `json:"accessKey"`
+	SecretKey string `json:"secretKe"`
+	Region    string `json:"region"`
 }
