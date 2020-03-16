@@ -2,9 +2,11 @@ package rest
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"github.com/gorilla/mux"
 	"github.com/nik/Imagitics/platform-s3-plugin/client"
+	"github.com/nik/Imagitics/platform-s3-plugin/metadata/repository"
 	"github.com/nik/Imagitics/platform-s3-plugin/web/rest/model"
 	"io/ioutil"
 	"net/http"
@@ -14,6 +16,17 @@ import (
 const FileSizeLimitError = "multipart: NextPart: http: request body too large"
 const NoSuchFileError = "http: no such file"
 
+type S3FileHandler struct {
+	repo repository.CassandraS3MetadataRepo
+}
+
+func NewS3FileHandler(repoInstance *repository.CassandraS3MetadataRepo) *S3FileHandler {
+	s3Handler := &S3FileHandler{
+		repo: *repoInstance,
+	}
+
+	return s3Handler
+}
 func S3RegistrationHander(w http.ResponseWriter, r *http.Request) {
 
 }
@@ -21,7 +34,7 @@ func S3RegistrationHander(w http.ResponseWriter, r *http.Request) {
 // S3UploadHandler handles the incoming rest request for post service
 // it retrieves bucket, tenant_id and actual entity to be uploaded
 // in case of any error it simply returns the error and relevant status code
-func S3UploadHandler(w http.ResponseWriter, r *http.Request) {
+func (handler *S3FileHandler) S3UploadHandler(w http.ResponseWriter, r *http.Request) {
 	// Retrieve path parameters
 	vars := mux.Vars(r)
 	tenantId := vars["tenant_id"]
@@ -29,7 +42,7 @@ func S3UploadHandler(w http.ResponseWriter, r *http.Request) {
 	//validateTenantId - to be added
 
 	// Retrieve aws credentials for this tenant
-	awsCredentials := getAWSCredentialsByTenantId(tenantId)
+	handler.getAWSCredentialsByTenantId(tenantId)
 
 	// Set file limit to configurable size
 	r.Body = http.MaxBytesReader(w, r.Body, 2*1024*1024) // 2 Mb
@@ -88,8 +101,21 @@ func S3UploadHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func getAWSCredentialsByTenantId(tenantId string) (*client.S3Credentials, error) {
-	if tenantID == "" {
-
+func (handler *S3FileHandler) getAWSCredentialsByTenantId(tenantId string) (*client.S3Credentials, error) {
+	if tenantId == "" {
+		return nil, errors.New("Tenant-ID can not be empty")
 	}
+
+	s3Metadata := handler.repo.Get(tenantId)
+	fmt.Println(s3Metadata.AccessKey)
+	fmt.Println(s3Metadata.SecretKey)
+	fmt.Println(s3Metadata.Region)
+	fmt.Println(s3Metadata.TenantID)
+
+	s3Credentials := &client.S3Credentials{
+		AWSSecretKey: s3Metadata.SecretKey,
+		AWSAccessKey: s3Metadata.AccessKey,
+	}
+
+	return s3Credentials, nil
 }

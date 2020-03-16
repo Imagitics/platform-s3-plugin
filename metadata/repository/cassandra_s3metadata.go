@@ -22,11 +22,13 @@ func NewCassandraS3MetadataRepo(conn *cassandra.CassandraConn) *CassandraS3Metad
 	return repo
 }
 
-func (repo *CassandraS3MetadataRepo) Get(tenantID string) {
+func (repo *CassandraS3MetadataRepo) Get(tenantID string) *model.S3Metadata {
 	selectQuery := "select access_key,preferred_region,secret_key from aws_metadata where tenant_id = ?"
 	iter := repo.session.Query(selectQuery, tenantID).Iter()
 	var s3Metadata model.S3Metadata
 	iter.Scan(&s3Metadata)
 
 	fmt.Println(s3Metadata.Region)
+
+	return &s3Metadata
 }
