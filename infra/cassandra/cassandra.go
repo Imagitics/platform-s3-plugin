@@ -1,10 +1,10 @@
 package cassandra
 
 import (
+	"github.com/gocql/gocql"
 	"log"
 	"os"
 	"strconv"
-	"github.com/gocql/gocql"
 	"time"
 )
 
@@ -13,8 +13,8 @@ type CassandraConn struct {
 	Port        string
 	Keyspace    string
 	Consistency string
-	User string
-	Password string
+	User        string
+	Password    string
 }
 
 type Cassandra struct {
@@ -29,7 +29,7 @@ func getEnv(key, fallback string) string {
 	return fallback
 }
 
-func (conn *CassandraConn) InitSession() (*gocql.Session){
+func (conn *CassandraConn) InitSession() *gocql.Session {
 	port := func(p string) int {
 		i, err := strconv.Atoi(p)
 		if err != nil {
@@ -40,7 +40,7 @@ func (conn *CassandraConn) InitSession() (*gocql.Session){
 	}
 
 	consistancy := func(c string) gocql.Consistency {
-		gc,err := gocql.ParseConsistencyWrapper(c)
+		gc, err := gocql.ParseConsistencyWrapper(c)
 		if err != nil {
 			return gocql.All
 		}
@@ -57,7 +57,7 @@ func (conn *CassandraConn) InitSession() (*gocql.Session){
 		Password: conn.Password,
 	}
 	cluster.ConnectTimeout = time.Second * 60
-	cluster.DisableInitialHostLookup=true
+	cluster.DisableInitialHostLookup = true
 	session, err := cluster.CreateSession()
 	if err != nil {
 		log.Printf("ERROR: fail create cassandra session, %s", err.Error())
