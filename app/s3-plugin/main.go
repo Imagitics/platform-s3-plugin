@@ -32,7 +32,7 @@ func main() {
 	repoInstance := repository.NewCassandraS3MetadataRepo(conn)
 	handler := rest.NewS3FileHandler(repoInstance)
 
-	router.HandleFunc("{tenant_id}/s3-store", handler.S3UploadHandler).Methods("POST")
+	router.HandleFunc("/{tenant_id}/s3-store", handler.S3UploadHandler).Methods("POST")
 
 	log.Fatal(srv.ListenAndServe())
 
