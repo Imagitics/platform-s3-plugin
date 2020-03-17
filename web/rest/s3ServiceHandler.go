@@ -51,7 +51,6 @@ func (handler *S3FileHandler) S3UploadHandler(w http.ResponseWriter, r *http.Req
 
 	request := r.FormValue("request")
 	file, header, err := r.FormFile("entity")
-
 	if err != nil {
 		switch err.Error() {
 		case FileSizeLimitError:
@@ -101,17 +100,19 @@ func (handler *S3FileHandler) S3UploadHandler(w http.ResponseWriter, r *http.Req
 	}
 }
 
+// getAWSCredentialsByTenantId retrieves aws credentials for the provided tenant identifier.
 func (handler *S3FileHandler) getAWSCredentialsByTenantId(tenantId string) (*client.S3Credentials, error) {
 	if tenantId == "" {
+		// tenantId can not be empty.Its better that the validation is done at a higher level
 		return nil, errors.New("Tenant-ID can not be empty")
 	}
 
-	s3Metadata := handler.repo.Get(tenantId)
-	fmt.Println(s3Metadata.AccessKey)
-	fmt.Println(s3Metadata.SecretKey)
-	fmt.Println(s3Metadata.Region)
-	fmt.Println(s3Metadata.TenantID)
-
+	// Retrieve aws metadata
+	s3Metadata, err := handler.repo.Get(tenantId)
+	if err != nil {
+		return nil, err
+	}
+	// Populate data structure as per the attributes
 	s3Credentials := &client.S3Credentials{
 		AWSSecretKey: s3Metadata.SecretKey,
 		AWSAccessKey: s3Metadata.AccessKey,
