@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/gorilla/mux"
 	"github.com/nik/Imagitics/platform-s3-plugin/client"
+	model2 "github.com/nik/Imagitics/platform-s3-plugin/metadata/model"
 	"github.com/nik/Imagitics/platform-s3-plugin/metadata/repository"
 	"github.com/nik/Imagitics/platform-s3-plugin/web/rest/model"
 	"io/ioutil"
@@ -41,7 +42,7 @@ func (handler *S3FileHandler) S3UploadHandler(w http.ResponseWriter, r *http.Req
 	tenantId := vars["tenant_id"]
 
 	// Retrieve aws credentials for this tenant
-	s3Credentials, err := handler.getAWSCredentialsByTenantId(tenantId)
+	s3Credentials, s3Metadata, err := handler.getAWSCredentialsAndMetadataByTenantId(tenantId)
 	if err != nil {
 		http.Error(w, "Bad request", http.StatusBadRequest)
 	}
@@ -66,21 +67,41 @@ func (handler *S3FileHandler) S3UploadHandler(w http.ResponseWriter, r *http.Req
 	// All validations are passed. Now a file can be uploaded to s3.
 	// This will remove the file once its uploaded to s3 bucket
 	defer os.Remove(tempFile.Name())
-	//s3UploadRequest.File = tempFile
 
+	// Populate region data.It has to be used from the upload request or from the metadata.
+	region := s3Metadata.Region
+	if s3UploadRequest.Region == "" {
+		region = s3UploadRequest.Region
+	}
+	if region == "" {
+		//region is empty
+		http.Error(w, "Bad request as region is missing", http.StatusBadRequest)
+	}
+
+	//Create a new S3Service instance and use this handler to perform upload operation to s3 bucket
+	s3Service, err := client.NewS3Service(s3Credentials.AWSAccessKey, s3Credentials.AWSSecretKey, "ap-south-1", "")
+	if err == nil {
+		fileBytes, _ := ioutil.ReadAll(tempFile)
+		s3Location, err := s3Service.Upload(s3UploadRequest.Bucket, s3UploadRequest.TenantId, fileBytes)
+		if err == nil {
+			fmt.Println(s3Location)
+		} else {
+			fmt.Println(err)
+		}
+	}
 }
 
 // getAWSCredentialsByTenantId retrieves aws credentials for the provided tenant identifier.
-func (handler *S3FileHandler) getAWSCredentialsByTenantId(tenantId string) (*client.S3Credentials, error) {
+func (handler *S3FileHandler) getAWSCredentialsAndMetadataByTenantId(tenantId string) (*client.S3Credentials, *model2.S3Metadata, error) {
 	if tenantId == "" {
 		// tenantId can not be empty.Its better that the validation is done at a higher level
-		return nil, errors.New("Tenant-ID can not be empty")
+		return nil, nil, errors.New("Tenant-ID can not be empty")
 	}
 
 	// Retrieve aws metadata
 	s3Metadata, err := handler.repo.Get(tenantId)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	// Populate data structure as per the attributes
 	s3Credentials := &client.S3Credentials{
@@ -88,7 +109,7 @@ func (handler *S3FileHandler) getAWSCredentialsByTenantId(tenantId string) (*cli
 		AWSAccessKey: s3Metadata.AccessKey,
 	}
 
-	return s3Credentials, nil
+	return s3Credentials, s3Metadata, nil
 }
 
 // validateAndGetFileHandler performs validation on uploaded file.
