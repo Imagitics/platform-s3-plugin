@@ -62,6 +62,7 @@ func (handler *S3FileHandler) S3UploadHandler(w http.ResponseWriter, r *http.Req
 	if err != nil {
 		// File validation failed
 		http.Error(w, err.Error(), http.StatusBadRequest)
+		return 
 	}
 
 	// All validations are passed. Now a file can be uploaded to s3.
