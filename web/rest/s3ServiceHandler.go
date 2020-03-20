@@ -62,7 +62,7 @@ func (handler *S3FileHandler) S3UploadHandler(w http.ResponseWriter, r *http.Req
 	if err != nil {
 		// File validation failed
 		http.Error(w, err.Error(), http.StatusBadRequest)
-		return 
+		return
 	}
 
 	// All validations are passed. Now a file can be uploaded to s3.
@@ -84,11 +84,13 @@ func (handler *S3FileHandler) S3UploadHandler(w http.ResponseWriter, r *http.Req
 	if err == nil {
 		fileBytes, _ := ioutil.ReadAll(tempFile)
 		s3Location, err := s3Service.Upload(s3UploadRequest.Bucket, s3UploadRequest.TenantId, fileBytes)
-		if err == nil {
-			fmt.Println(s3Location)
-		} else {
-			fmt.Println(err)
+		if err != nil {
+			w.WriteHeader(500)
+			w.Write([]byte(fmt.Sprintf("File can not be uploaded")))
+			return
 		}
+		w.WriteHeader(201)
+		w.Write([]byte(fmt.Sprintf("File successfully updated at location %s", s3Location)))
 	}
 }
 
