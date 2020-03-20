@@ -80,7 +80,7 @@ func (handler *S3FileHandler) S3UploadHandler(w http.ResponseWriter, r *http.Req
 	}
 
 	//Create a new S3Service instance and use this handler to perform upload operation to s3 bucket
-	s3Service, err := client.NewS3Service(s3Credentials.AWSAccessKey, s3Credentials.AWSSecretKey, "ap-south-1", "")
+	s3Service, err := client.NewS3Service(s3Credentials.AWSAccessKey, s3Credentials.AWSSecretKey, region, "")
 	if err == nil {
 		fileBytes, _ := ioutil.ReadAll(tempFile)
 		s3Location, err := s3Service.Upload(s3UploadRequest.Bucket, s3UploadRequest.TenantId, fileBytes)
