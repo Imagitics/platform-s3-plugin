@@ -44,10 +44,13 @@ func (s3Service *S3Service) Upload(bucketName string, directoryPath string, file
 	bucketInstance := &s3.CreateBucketInput{Bucket: aws.String(bucketName)}
 	_, err := s3Service.s3Client.CreateBucket(bucketInstance)
 	if err != nil {
-		// Check whether bucket already exists. Its possible as we we support atleast once semantics
+		// Check whether bucket already exists.
+		// Its possible as we we support atleast once semantics
 		if aerr, ok := err.(awserr.Error); ok {
 			switch aerr.Code() {
 			case s3.ErrCodeBucketAlreadyOwnedByYou:
+				goto next
+			case s3.ErrCodeBucketAlreadyExists:
 				goto next
 			default:
 				return "", aerr
