@@ -18,12 +18,12 @@ import (
 const FileSizeLimitError = "multipart: NextPart: http: request body too large"
 const NoSuchFileError = "http: no such file"
 
-type S3FileHandler struct {
+type S3Handler struct {
 	repo repository.CassandraS3MetadataRepo
 }
 
-func NewS3FileHandler(repoInstance *repository.CassandraS3MetadataRepo) *S3FileHandler {
-	s3Handler := &S3FileHandler{
+func NewS3FileHandler(repoInstance *repository.CassandraS3MetadataRepo) *S3Handler {
+	s3Handler := &S3Handler{
 		repo: *repoInstance,
 	}
 
@@ -36,7 +36,7 @@ func S3RegistrationHander(w http.ResponseWriter, r *http.Request) {
 // S3UploadHandler handles the incoming rest request for post service
 // it retrieves bucket, tenant_id and actual entity to be uploaded
 // in case of any error it simply returns the error and relevant status code
-func (handler *S3FileHandler) S3UploadHandler(w http.ResponseWriter, r *http.Request) {
+func (handler *S3Handler) S3UploadHandler(w http.ResponseWriter, r *http.Request) {
 	// Retrieve path parameters
 	vars := mux.Vars(r)
 	tenantId := vars["tenant_id"]
@@ -95,7 +95,7 @@ func (handler *S3FileHandler) S3UploadHandler(w http.ResponseWriter, r *http.Req
 }
 
 // getAWSCredentialsByTenantId retrieves aws credentials for the provided tenant identifier.
-func (handler *S3FileHandler) getAWSCredentialsAndMetadataByTenantId(tenantId string) (*client.S3Credentials, *model2.S3Metadata, error) {
+func (handler *S3Handler) getAWSCredentialsAndMetadataByTenantId(tenantId string) (*client.S3Credentials, *model2.S3Metadata, error) {
 	if tenantId == "" {
 		// tenantId can not be empty.Its better that the validation is done at a higher level
 		return nil, nil, errors.New("Tenant-ID can not be empty")
