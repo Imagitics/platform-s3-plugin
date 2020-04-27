@@ -1,4 +1,4 @@
-package rest
+package v1
 
 import (
 	"encoding/json"
@@ -18,13 +18,15 @@ import (
 const FileSizeLimitError = "multipart: NextPart: http: request body too large"
 const NoSuchFileError = "http: no such file"
 
-type S3Handler struct {
+type Api struct {
+	router *mux.Router
 	repo repository.CassandraS3MetadataRepo
 }
 
-func NewS3FileHandler(repoInstance *repository.CassandraS3MetadataRepo) *S3Handler {
-	s3Handler := &S3Handler{
+func NewApi(router *mux.Router,repoInstance *repository.CassandraS3MetadataRepo) *Api {
+	s3Handler := &Api{
 		repo: *repoInstance,
+		router:router,
 	}
 
 	return s3Handler
@@ -36,13 +38,13 @@ func S3RegistrationHander(w http.ResponseWriter, r *http.Request) {
 // S3UploadHandler handles the incoming rest request for post service
 // it retrieves bucket, tenant_id and actual entity to be uploaded
 // in case of any error it simply returns the error and relevant status code
-func (handler *S3Handler) S3UploadHandler(w http.ResponseWriter, r *http.Request) {
+func (api *Api) upload (w http.ResponseWriter, r *http.Request) {
 	// Retrieve path parameters
 	vars := mux.Vars(r)
 	tenantId := vars["tenant_id"]
 
 	// Retrieve aws credentials for this tenant
-	s3Credentials, s3Metadata, err := handler.getAWSCredentialsAndMetadataByTenantId(tenantId)
+	s3Credentials, s3Metadata, err := api.getAWSCredentialsAndMetadataByTenantId(tenantId)
 	if err != nil {
 		http.Error(w, "Bad request", http.StatusBadRequest)
 	}
@@ -95,14 +97,14 @@ func (handler *S3Handler) S3UploadHandler(w http.ResponseWriter, r *http.Request
 }
 
 // getAWSCredentialsByTenantId retrieves aws credentials for the provided tenant identifier.
-func (handler *S3Handler) getAWSCredentialsAndMetadataByTenantId(tenantId string) (*client.S3Credentials, *model2.S3Metadata, error) {
+func (api *Api) getAWSCredentialsAndMetadataByTenantId(tenantId string) (*client.S3Credentials, *model2.S3Metadata, error) {
 	if tenantId == "" {
 		// tenantId can not be empty.Its better that the validation is done at a higher level
 		return nil, nil, errors.New("Tenant-ID can not be empty")
 	}
 
 	// Retrieve aws metadata
-	s3Metadata, err := handler.repo.Get(tenantId)
+	s3Metadata, err := api.repo.Get(tenantId)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -171,4 +173,12 @@ func validateAndRetriveUploadRequest(body string) (*model.S3UploadRequest, error
 	}
 
 	return s3UploadRequest, nil
+}
+
+func (a *Api) InitializeRoutes() {
+	a.Router.HandleFunc("/s3/images/{id:[0-9]+}", a.getProducts).Methods("GET")
+	a.Router.HandleFunc("/s3/images", a.upload).Methods("POST")
+	//a.Router.HandleFunc("/product/{id:[0-9]+}", a.getProduct).Methods("GET")
+	//a.Router.HandleFunc("/product/{id:[0-9]+}", a.updateProduct).Methods("PUT")
+	//a.Router.HandleFunc("/product/{id:[0-9]+}", a.deleteProduct).Methods("DELETE")
 }
