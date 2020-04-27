@@ -21,8 +21,9 @@ func main() {
 		ReadTimeout:  15 * time.Second,
 	}
 
+
 	conn := &cassandra.CassandraConn{
-		Host:        "172.18.0.2",
+		Hosts:        [] string {"172.18.0.2","172.18.0.2"},
 		Port:        "9042",
 		User:        "cassandra",
 		Password:    "cassandra",

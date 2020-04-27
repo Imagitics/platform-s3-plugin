@@ -7,4 +7,8 @@ type ConfigModel struct {
 		Region       string `json:"region"`
 		PathPrefix   string `json:"path_prefix"`
 	} `json:"s3"`
+	Cassandra struct {
+		CassandraHost string `json:"cassandra_host"`
+		CassandraPort string `json:"cassandra_port"`
+	}
 }
