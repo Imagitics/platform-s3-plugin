@@ -4,7 +4,7 @@ import "github.com/nik/Imagitics/platform-s3-plugin/infra/cassandra"
 
 func main() {
 	conn := cassandra.CassandraConn{
-		Host:        "172.18.0.2",
+		Hosts:        [] string {"172.18.0.2"},
 		Port:        "9042",
 		User:        "cassandra",
 		Password:    "cassandra",
