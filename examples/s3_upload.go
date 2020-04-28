@@ -1,29 +1,40 @@
 package main
 
 import (
-	"fmt"
-	"github.com/nik/Imagitics/platform-s3-plugin/client"
-	"github.com/nik/Imagitics/platform-s3-plugin/utility"
-	"path/filepath"
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/credentials"
+	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/service/s3"
+	"os"
 )
 
 // Performs upload to s3 bucket using configuration specified in the config file
 func s3UploadUsingConfig() {
-	bigBuff := make([]byte, 750)
-	configPath := filepath.FromSlash("/app/platform-s3-plugin/config/config.json")
+	creds := credentials.NewStaticCredentials("AKIAIHJZ6JMA6LJ4KQBQ", "pv2/HpVjBFEi4fUGMb6oXuaA6ULh4sH1QgUwKRAZ", "")
+	// Retrieve credentials value
+	_, err := creds.Get()
 
-	config, error := utility.LoadConfiguration(configPath)
-	if error != nil {
-		panic(error)
+	if err != nil {
+		os.Exit(0)
 	}
 
-	s3Service, err := client.NewS3Service(config.S3.AwsAccessKey, config.S3.AwsSecretKey, config.S3.Region, "")
-	if err == nil {
-		s3Location, err := s3Service.Upload("tenant-id-pkg1234", "path", bigBuff)
-		if err == nil {
-			fmt.Println(s3Location)
-		} else {
-			fmt.Println(err)
-		}
+	// Create configure object to be used to create a new session
+	cfg := aws.NewConfig().WithRegion("ap-south-1").WithCredentials(creds)
+
+	// Create a new Session
+	ses, err := session.NewSession(cfg)
+	svc := s3.New(ses)
+
+	input := &s3.CreateBucketInput{
+		Bucket: aws.String("uwrwer"),
 	}
+
+	res, err := svc.CreateBucket(input)
+	println(res.Location)
+	println(err.Error())
+
+}
+
+func main() {
+	s3UploadUsingConfig()
 }
