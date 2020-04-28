@@ -5,11 +5,12 @@ import (
 	"log"
 	"os"
 	"strconv"
+	"strings"
 	"time"
 )
 
 type CassandraConn struct {
-	Host        string
+	Hosts       [] string
 	Port        string
 	Keyspace    string
 	Consistency string
@@ -48,7 +49,7 @@ func (conn *CassandraConn) InitSession() *gocql.Session {
 		return gc
 	}
 
-	cluster := gocql.NewCluster(conn.Host)
+	cluster := gocql.NewCluster(strings.Join(conn.Hosts,","))
 	cluster.Port = port(conn.Port)
 	cluster.Keyspace = conn.Keyspace
 	cluster.Consistency = consistancy(conn.Consistency)
