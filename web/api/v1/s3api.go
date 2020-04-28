@@ -39,16 +39,6 @@ func S3RegistrationHander(w http.ResponseWriter, r *http.Request) {
 // it retrieves bucket, tenant_id and actual entity to be uploaded
 // in case of any error it simply returns the error and relevant status code
 func (api *Api) upload (w http.ResponseWriter, r *http.Request) {
-	// Retrieve path parameters
-	vars := mux.Vars(r)
-	tenantId := vars["tenant_id"]
-
-	// Retrieve aws credentials for this tenant
-	s3Credentials, s3Metadata, err := api.getAWSCredentialsAndMetadataByTenantId(tenantId)
-	if err != nil {
-		http.Error(w, "Bad request", http.StatusBadRequest)
-	}
-
 	// Set file limit to configurable size
 	r.Body = http.MaxBytesReader(w, r.Body, 2*1024*1024) // 2 Mb
 
@@ -57,6 +47,13 @@ func (api *Api) upload (w http.ResponseWriter, r *http.Request) {
 	s3UploadRequest, err := validateAndRetriveUploadRequest(r.FormValue("request"))
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
+	}
+
+	//retrieve aws metadata stored agains tenant-id
+	s3Credentials, s3Metadata, err := api.getAWSCredentialsAndMetadataByTenantId(s3UploadRequest.TenantId)
+	if err != nil {
+		http.Error(w, "Bad request", http.StatusBadRequest)
+		return
 	}
 
 	// Validate the uploaded file and retrieve the file handler for uploading the physical file to s3
@@ -176,8 +173,8 @@ func validateAndRetriveUploadRequest(body string) (*model.S3UploadRequest, error
 }
 
 func (a *Api) InitializeRoutes() {
-	a.Router.HandleFunc("/s3/images/{id:[0-9]+}", a.getProducts).Methods("GET")
-	a.Router.HandleFunc("/s3/images", a.upload).Methods("POST")
+	//a.router.HandleFunc("/s3/images/{id:[0-9]+}", a.getProducts).Methods("GET")
+	a.router.HandleFunc("/s3/files", a.upload).Methods("POST")
 	//a.Router.HandleFunc("/product/{id:[0-9]+}", a.getProduct).Methods("GET")
 	//a.Router.HandleFunc("/product/{id:[0-9]+}", a.updateProduct).Methods("PUT")
 	//a.Router.HandleFunc("/product/{id:[0-9]+}", a.deleteProduct).Methods("DELETE")
