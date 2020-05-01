@@ -4,7 +4,7 @@ import (
 	"errors"
 	"github.com/gocql/gocql"
 	"github.com/nik/Imagitics/platform-s3-plugin/infra/cassandra"
-	"github.com/nik/Imagitics/platform-s3-plugin/metadata/model"
+	"github.com/nik/Imagitics/platform-s3-plugin/pkg/model"
 )
 
 type CassandraS3MetadataRepo struct {
