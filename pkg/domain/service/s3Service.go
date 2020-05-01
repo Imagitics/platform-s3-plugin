@@ -7,6 +7,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/aws/aws-sdk-go/service/s3/s3manager"
+	"github.com/nik/Imagitics/platform-s3-plugin/pkg/model"
 )
 
 type S3Service struct {
@@ -18,7 +19,7 @@ type S3Service struct {
 // Token is used for aws session token
 // It returns pointer to the object that wraps s3Client
 func NewS3Service(awsAccessKey string, awsSecretKey string, region string, token string) (*S3Service, error) {
-	s3Cred, err := NewS3Credential(awsAccessKey, awsSecretKey, token)
+	s3Cred, err := model.NewS3Credential(awsAccessKey, awsSecretKey, token)
 	if err != nil {
 		return nil, err
 	}
