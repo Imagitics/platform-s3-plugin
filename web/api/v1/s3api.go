@@ -5,9 +5,8 @@ import (
 	"errors"
 	"fmt"
 	"github.com/gorilla/mux"
-	"github.com/nik/Imagitics/platform-s3-plugin/client"
-	model2 "github.com/nik/Imagitics/platform-s3-plugin/metadata/model"
 	"github.com/nik/Imagitics/platform-s3-plugin/metadata/repository"
+	"github.com/nik/Imagitics/platform-s3-plugin/pkg/domain/service"
 	"github.com/nik/Imagitics/platform-s3-plugin/web/rest/model"
 	"io/ioutil"
 	"mime/multipart"
@@ -20,13 +19,13 @@ const NoSuchFileError = "http: no such file"
 
 type Api struct {
 	router *mux.Router
-	repo repository.CassandraS3MetadataRepo
+	repo repository.S3Metadata
 }
 
-func NewApi(router *mux.Router,repoInstance *repository.CassandraS3MetadataRepo) *Api {
+func NewApi(router *mux.Router,repoInstance repository.S3Metadata) *Api {
 	s3Handler := &Api{
-		repo: *repoInstance,
 		router:router,
+		repo:repoInstance,
 	}
 
 	return s3Handler
@@ -49,13 +48,6 @@ func (api *Api) upload (w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 	}
 
-	//retrieve aws metadata stored agains tenant-id
-	s3Credentials, s3Metadata, err := api.getAWSCredentialsAndMetadataByTenantId(s3UploadRequest.TenantId)
-	if err != nil {
-		http.Error(w, "Bad request", http.StatusBadRequest)
-		return
-	}
-
 	// Validate the uploaded file and retrieve the file handler for uploading the physical file to s3
 	tempFile, err := validateAndGetFileHandler(r.FormFile("entity"))
 	if err != nil {
@@ -68,18 +60,8 @@ func (api *Api) upload (w http.ResponseWriter, r *http.Request) {
 	// This will remove the file once its uploaded to s3 bucket
 	defer os.Remove(tempFile.Name())
 
-	// Populate region data.It has to be used from the upload request or from the metadata.
-	region := s3Metadata.Region
-	if s3UploadRequest.Region == "" {
-		region = s3UploadRequest.Region
-	}
-	if region == "" {
-		//region is empty
-		http.Error(w, "Bad request as region is missing", http.StatusBadRequest)
-	}
-
 	//Create a new S3Service instance and use this handler to perform upload operation to s3 bucket
-	s3Service, err := client.NewS3Service(s3Credentials.AWSAccessKey, s3Credentials.AWSSecretKey, region, "")
+	s3Service, err := service.NewS3Service(s3UploadRequest.TenantId, s3UploadRequest.Region, api.repo, "")
 	if err == nil {
 		fileBytes, _ := ioutil.ReadAll(tempFile)
 		s3Location, err := s3Service.Upload(s3UploadRequest.Bucket, s3UploadRequest.TenantId, fileBytes)
@@ -93,26 +75,6 @@ func (api *Api) upload (w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// getAWSCredentialsByTenantId retrieves aws credentials for the provided tenant identifier.
-func (api *Api) getAWSCredentialsAndMetadataByTenantId(tenantId string) (*client.S3Credentials, *model2.S3Metadata, error) {
-	if tenantId == "" {
-		// tenantId can not be empty.Its better that the validation is done at a higher level
-		return nil, nil, errors.New("Tenant-ID can not be empty")
-	}
-
-	// Retrieve aws metadata
-	s3Metadata, err := api.repo.Get(tenantId)
-	if err != nil {
-		return nil, nil, err
-	}
-	// Populate data structure as per the attributes
-	s3Credentials := &client.S3Credentials{
-		AWSSecretKey: s3Metadata.SecretKey,
-		AWSAccessKey: s3Metadata.AccessKey,
-	}
-
-	return s3Credentials, s3Metadata, nil
-}
 
 // validateAndGetFileHandler performs validation on uploaded file.
 // File can not be nil and there is a limit on the file size.
@@ -167,6 +129,8 @@ func validateAndRetriveUploadRequest(body string) (*model.S3UploadRequest, error
 	} else if s3UploadRequest.TenantId == "" {
 		//validate tenant identifier case
 		return nil, errors.New("Invalid request")
+	} else if s3UploadRequest.Region == "" {
+		return nil, errors.New("Region can not be empty")
 	}
 
 	return s3UploadRequest, nil
