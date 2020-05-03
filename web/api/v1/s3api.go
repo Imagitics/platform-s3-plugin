@@ -45,14 +45,15 @@ func (api *Api) upload (w http.ResponseWriter, r *http.Request) {
 	// Retrieve request and file from the form
 	s3UploadRequest, err := validateAndRetriveUploadRequest(r.FormValue("request"))
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		respondWithError(w,http.StatusBadRequest,err.Error())
+		return
 	}
 
 	// Validate the uploaded file and retrieve the file handler for uploading the physical file to s3
 	tempFile, err := validateAndGetFileHandler(r.FormFile("entity"))
 	if err != nil {
 		// File validation failed
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		respondWithError(w,http.StatusBadRequest,err.Error())
 		return
 	}
 
@@ -66,12 +67,11 @@ func (api *Api) upload (w http.ResponseWriter, r *http.Request) {
 		fileBytes, _ := ioutil.ReadAll(tempFile)
 		s3Location, err := s3Service.Upload(s3UploadRequest.Bucket, s3UploadRequest.TenantId, fileBytes)
 		if err != nil {
-			w.WriteHeader(500)
-			w.Write([]byte(fmt.Sprintf("File can not be uploaded")))
+			respondWithError(w,http.StatusInternalServerError,"File can not be uploaded")
 			return
 		}
-		w.WriteHeader(201)
-		w.Write([]byte(fmt.Sprintf("File successfully updated at location %s", s3Location)))
+
+		respondWithJSON(w,http.StatusCreated,fmt.Sprintf("File successfully updated at location %s", s3Location))
 	}
 }
 
@@ -134,6 +134,20 @@ func validateAndRetriveUploadRequest(body string) (*model.S3UploadRequest, error
 	}
 
 	return s3UploadRequest, nil
+}
+
+//decorate error response
+func respondWithError(w http.ResponseWriter, code int, message string) {
+	respondWithJSON(w, code, map[string]string{"error": message})
+}
+
+//decorate success response
+func respondWithJSON(w http.ResponseWriter, code int, payload interface{}) {
+	response, _ := json.Marshal(payload)
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(code)
+	w.Write(response)
 }
 
 func (a *Api) InitializeRoutes() {
