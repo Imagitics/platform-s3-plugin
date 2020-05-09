@@ -19,13 +19,13 @@ const NoSuchFileError = "http: no such file"
 
 type Api struct {
 	router *mux.Router
-	repo repository.S3Metadata
+	repo   repository.S3Metadata
 }
 
-func NewApi(router *mux.Router,repoInstance repository.S3Metadata) *Api {
+func NewApi(router *mux.Router, repoInstance repository.S3Metadata) *Api {
 	s3Handler := &Api{
-		router:router,
-		repo:repoInstance,
+		router: router,
+		repo:   repoInstance,
 	}
 
 	return s3Handler
@@ -37,7 +37,7 @@ func S3RegistrationHander(w http.ResponseWriter, r *http.Request) {
 // S3UploadHandler handles the incoming rest request for post service
 // it retrieves bucket, tenant_id and actual entity to be uploaded
 // in case of any error it simply returns the error and relevant status code
-func (api *Api) upload (w http.ResponseWriter, r *http.Request) {
+func (api *Api) upload(w http.ResponseWriter, r *http.Request) {
 	// Set file limit to configurable size
 	r.Body = http.MaxBytesReader(w, r.Body, 2*1024*1024) // 2 Mb
 
@@ -45,7 +45,7 @@ func (api *Api) upload (w http.ResponseWriter, r *http.Request) {
 	// Retrieve request and file from the form
 	s3UploadRequest, err := validateAndRetriveUploadRequest(r.FormValue("request"))
 	if err != nil {
-		respondWithError(w,http.StatusBadRequest,err.Error())
+		respondWithError(w, http.StatusBadRequest, err.Error())
 		return
 	}
 
@@ -53,7 +53,7 @@ func (api *Api) upload (w http.ResponseWriter, r *http.Request) {
 	tempFile, err := validateAndGetFileHandler(r.FormFile("entity"))
 	if err != nil {
 		// File validation failed
-		respondWithError(w,http.StatusBadRequest,err.Error())
+		respondWithError(w, http.StatusBadRequest, err.Error())
 		return
 	}
 
@@ -67,14 +67,13 @@ func (api *Api) upload (w http.ResponseWriter, r *http.Request) {
 		fileBytes, _ := ioutil.ReadAll(tempFile)
 		s3Location, err := s3Service.Upload(s3UploadRequest.Bucket, s3UploadRequest.TenantId, fileBytes)
 		if err != nil {
-			respondWithError(w,http.StatusInternalServerError,"File can not be uploaded")
+			respondWithError(w, http.StatusInternalServerError, "File can not be uploaded")
 			return
 		}
 
-		respondWithJSON(w,http.StatusCreated,fmt.Sprintf("File successfully updated at location %s", s3Location))
+		respondWithJSON(w, http.StatusCreated, fmt.Sprintf("File successfully updated at location %s", s3Location))
 	}
 }
-
 
 // validateAndGetFileHandler performs validation on uploaded file.
 // File can not be nil and there is a limit on the file size.
