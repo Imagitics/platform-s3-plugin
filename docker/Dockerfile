@@ -10,19 +10,18 @@ RUN mkdir -p /go/src/github.com/nik/app
 
 ADD . /go/src/github.com/nik/app
 
-# Download all dependencies. Dependencies will be cached if the go.mod and go.sum files are not changed
-
 # Set the Current Working Directory inside the container
 WORKDIR /go/src/github.com/nik/app
 
+# Download all dependencies. Dependencies will be cached if the go.mod and go.sum files are not changed
+ENV GO111MODULE=on
+
 RUN go mod download
 
-# Go dep!
-#RUN go get -u github.com/golang/dep/...
-#RUN dep ensure
+#RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build
 
 # Build the Go app
-RUN go build -o main .
+RUN go build cmd/s3-plugin/main.go
 
 # Expose port 8080 to the outside world
 EXPOSE 8080
