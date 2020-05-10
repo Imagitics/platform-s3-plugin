@@ -15,7 +15,7 @@ import (
 type S3Service struct {
 	s3Client *s3.S3
 	session  *session.Session
-	repo repository.S3Metadata
+	repo     repository.S3Metadata
 }
 
 // Initializes s3Client with required parameters such as accesskey, secretkey and region
@@ -35,7 +35,7 @@ func NewS3Service(tenantID string, region string, repo repository.S3Metadata, to
 		return nil, err
 	}
 
-	if(region=="") {
+	if region == "" {
 		region = s3Metadata.Region
 	}
 
@@ -57,6 +57,7 @@ func NewS3Service(tenantID string, region string, repo repository.S3Metadata, to
 // Uploads file to s3 to provided bucket at input directory path
 func (s3Service *S3Service) Upload(bucketName string, directoryPath string, file []byte) (string, error) {
 	// Create bucket instance
+
 	bucketInstance := &s3.CreateBucketInput{Bucket: aws.String(bucketName)}
 	_, err := s3Service.s3Client.CreateBucket(bucketInstance)
 	if err != nil {
@@ -113,4 +114,3 @@ func getAWSCredentialsAndMetadataByTenantId(tenantId string, repo repository.S3M
 
 	return s3Credentials, s3Metadata, nil
 }
-
