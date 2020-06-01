@@ -19,10 +19,16 @@ spec:
         tier: backend
     spec:
       containers:
-        - name: platform-image-service
-          image: nikbhi15docker/platform-s3-int
+        - name: platform-s3-plugin
+          env:
+            - name: CASSANDRA_HOST
+              value: "cassandra.default.svc.cluster.local"
+          image: nikbhi15docker/platform-s3-plugin
           imagePullPolicy: Always
           resources:
+            limits:
+              cpu: 2000m
+              memory: 2000Mi
             requests:
               cpu: 100m
               memory: 100Mi
