@@ -2,13 +2,18 @@ package config
 
 type ConfigModel struct {
 	S3 struct {
-		AwsAccessKey string `json:"aws_access_key"`
-		AwsSecretKey string `json:"aws_secret_key"`
-		Region       string `json:"region"`
-		PathPrefix   string `json:"path_prefix"`
+		AccessKey  string `json:"aws_access_key"`
+		SecretKey  string `json:"aws_secret_key"`
+		Region     string `json:"region"`
+		PathPrefix string `json:"path_prefix"`
 	} `json:"s3"`
 	Cassandra struct {
-		CassandraHost string `json:"cassandra_host"`
-		CassandraPort string `json:"cassandra_port"`
+		Host        string `json:"host"`
+		Port        string `json:"port"`
+		User        string `json:"user"`
+		Password    string `json:"password"`
+		SSLCertPath string `json:"cert_file_path"`
+		Consistency string `json:"consistency"`
+		Keyspace    string `json:"keyspace"`
 	}
 }
