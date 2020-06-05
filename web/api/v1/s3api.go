@@ -41,8 +41,6 @@ func (api *Api) upload(w http.ResponseWriter, r *http.Request) {
 	// Set file limit to configurable size
 	r.Body = http.MaxBytesReader(w, r.Body, 2*1024*1024) // 2 Mb
 
-	// Unmarshal the request body into struct and then perform the option of upload
-	// Retrieve request and file from the form
 	s3UploadRequest, err := validateAndRetriveUploadRequest(r.FormValue("request"))
 	if err != nil {
 		respondWithError(w, http.StatusBadRequest, err.Error())
