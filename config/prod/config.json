@@ -1,0 +1,17 @@
+{
+  "s3": {
+    "aws_access_key": "${aws_access_key}",
+    "aws_secret_key": "${aws_secret_key}",
+    "region": "${region_name}",
+    "path_prefix": "${tenant_path}"
+  },
+  "cassandra": {
+    "host": "cassandra.us-east-1.amazonaws.com",
+    "port": "9142",
+    "user": "CassandraMS+1-at-948987282987",
+    "password": "owRJ1sZDnVhuXKiBTMUHxZU1VvM3JwaR6f4eu+ZWQFs=",
+    "consistency":"LOCAL_QUORUM",
+    "keyspace": "platform_s3_db",
+    "cert_file_path":"/etc/config/AmazonRootCA1.pem"
+  }
+}
