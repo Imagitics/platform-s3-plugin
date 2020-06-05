@@ -12,8 +12,6 @@ type CassandraS3MetadataRepo struct {
 }
 
 func NewCassandraS3MetadataRepo(conn *cassandra.CassandraConn) *CassandraS3MetadataRepo {
-	conn.Keyspace = "platform_s3_db"
-	conn.Consistency = "QUORUM"
 	session := conn.InitSession()
 	repo := &CassandraS3MetadataRepo{
 		session: session,
