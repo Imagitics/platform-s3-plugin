@@ -34,13 +34,20 @@ spec:
               memory: 100Mi
           ports:
             - containerPort: 8080
+          volumeMounts:
+            - name: config-volume
+              mountPath: /etc/config
+      volumes:
+        - name: config-volume
+          configMap:
+            name: platform-s3-plugin-config
 ---
 apiVersion: v1
 kind: Service
 metadata:
   name: platform-s3-plugin-service
   annotations:
-    service.beta.kubernetes.io/aws-load-balancer-type: nlb
+    service.beta.kubernetes.io/aws-load-balancer-type: alb
   labels:
     app: platform-s3-plugin
     tier: backend
