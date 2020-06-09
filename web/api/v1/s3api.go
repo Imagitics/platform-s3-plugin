@@ -126,8 +126,8 @@ func validateAndRetriveUploadRequest(body string) (*model.S3UploadRequest, error
 	} else if s3UploadRequest.TenantId == "" {
 		//validate tenant identifier case
 		return nil, errors.New("Invalid request")
-	} else if s3UploadRequest.Region == "" {
-		return nil, errors.New("Region can not be empty")
+	} else if s3UploadRequest.Directory == "" {
+		return nil, errors.New("Invalid request")
 	}
 
 	return s3UploadRequest, nil
