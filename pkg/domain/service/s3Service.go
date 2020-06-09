@@ -24,7 +24,7 @@ type S3Service struct {
 func NewS3Service(tenantID string, region string, repo repository.S3Metadata, token string) (*S3Service, error) {
 
 	//retrieve aws metadata stored agains tenant-id
-	s3Credentials, s3Metadata, err := getAWSCredentialsAndMetadataByTenantId(tenantID, repo)
+	s3Credentials, s3Metadata, err := getS3AttributesMetadataByTenantId(tenantID, repo)
 	if err != nil {
 		return nil, err
 	}
@@ -57,7 +57,6 @@ func NewS3Service(tenantID string, region string, repo repository.S3Metadata, to
 // Uploads file to s3 to provided bucket at input directory path
 func (s3Service *S3Service) Upload(bucketName string, directoryPath string, file []byte) (string, error) {
 	// Create bucket instance
-
 	bucketInstance := &s3.CreateBucketInput{Bucket: aws.String(bucketName)}
 	_, err := s3Service.s3Client.CreateBucket(bucketInstance)
 	if err != nil {
@@ -95,7 +94,7 @@ next:
 }
 
 // getAWSCredentialsByTenantId retrieves aws credentials for the provided tenant identifier.
-func getAWSCredentialsAndMetadataByTenantId(tenantId string, repo repository.S3Metadata) (*model.S3Credentials, *model.S3Metadata, error) {
+func getS3AttributesMetadataByTenantId(tenantId string, repo repository.S3Metadata) (*model.S3Credentials, *model.S3Metadata, error) {
 	if tenantId == "" {
 		// tenantId can not be empty.Its better that the validation is done at a higher level
 		return nil, nil, errors.New("Tenant-ID can not be empty")
