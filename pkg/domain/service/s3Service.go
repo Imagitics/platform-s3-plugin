@@ -55,7 +55,7 @@ func NewS3Service(tenantID string, region string, repo repository.S3Metadata, to
 }
 
 // Uploads file to s3 to provided bucket at input directory path
-func (s3Service *S3Service) Upload(bucketName string, directoryPath string, file []byte) (string, error) {
+func (s3Service *S3Service) Upload(bucketName string, directoryPath string, filePath string, file []byte) (string, error) {
 	// Create bucket instance
 	bucketInstance := &s3.CreateBucketInput{Bucket: aws.String(bucketName)}
 	_, err := s3Service.s3Client.CreateBucket(bucketInstance)
@@ -82,7 +82,7 @@ next:
 	// Upload the file to S3.
 	fileUploadReuslt, err := uploader.Upload(&s3manager.UploadInput{
 		Bucket: aws.String(bucketName),
-		Key:    aws.String(directoryPath),
+		Key:    aws.String(directoryPath + "/" + filePath),
 		Body:   body,
 	})
 

@@ -63,7 +63,7 @@ func (api *Api) upload(w http.ResponseWriter, r *http.Request) {
 	s3Service, err := service.NewS3Service(s3UploadRequest.TenantId, s3UploadRequest.Region, api.repo, "")
 	if err == nil {
 		fileBytes, _ := ioutil.ReadAll(tempFile)
-		s3Location, err := s3Service.Upload(s3UploadRequest.Bucket, s3UploadRequest.TenantId, fileBytes)
+		s3Location, err := s3Service.Upload(s3UploadRequest.Bucket, s3UploadRequest.Directory, s3UploadRequest.FilePath, fileBytes)
 		if err != nil {
 			respondWithError(w, http.StatusInternalServerError, "File can not be uploaded")
 			return
@@ -125,9 +125,9 @@ func validateAndRetriveUploadRequest(body string) (*model.S3UploadRequest, error
 		return nil, errors.New("Bucket can not be empty")
 	} else if s3UploadRequest.TenantId == "" {
 		//validate tenant identifier case
-		return nil, errors.New("Invalid request")
+		return nil, errors.New("Tenant can not be empty")
 	} else if s3UploadRequest.Directory == "" {
-		return nil, errors.New("Invalid request")
+		return nil, errors.New("Directory can not be empty")
 	}
 
 	return s3UploadRequest, nil
