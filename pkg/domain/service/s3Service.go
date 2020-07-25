@@ -10,6 +10,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/s3/s3manager"
 	"github.com/nik/Imagitics/platform-s3-plugin/metadata/repository"
 	"github.com/nik/Imagitics/platform-s3-plugin/pkg/model"
+	"path/filepath"
 )
 
 type S3Service struct {
@@ -82,7 +83,7 @@ next:
 	// Upload the file to S3.
 	fileUploadReuslt, err := uploader.Upload(&s3manager.UploadInput{
 		Bucket: aws.String(bucketName),
-		Key:    aws.String(directoryPath + "/" + filePath),
+		Key:    aws.String(directoryPath + "/" + filepath.Base(filePath)),
 		Body:   body,
 	})
 
